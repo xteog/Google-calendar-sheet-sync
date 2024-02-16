@@ -7,3 +7,10 @@ sheetName = 0
 googleCalendarURL = "https://www.googleapis.com/calendar/v3/calendars/{calendarId}/events/{eventId}"
 
 calendarId = 0
+
+dateTimeFormat = "%Y/%m/%d %H:%M:%S"
+
+defaultEquipment = "None"
+
+googleCredentialsPath = ""
+
