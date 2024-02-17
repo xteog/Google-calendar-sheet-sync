@@ -26,11 +26,11 @@ def sendRequest(request: Request, url: str, data: dict = {}) -> any:
 
         if response.status_code == 200:
             done = 4
-
-        done += 1
+        else:
+            done += 1
 
     if done != 4:
-        logging.error(f"{request} {url} {data}")
+        logging.error(f"{request} {url} {data} {response.json()}")
         return None
 
     return response.json()

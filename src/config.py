@@ -6,11 +6,11 @@ sheetName = 0
 
 googleCalendarURL = "https://www.googleapis.com/calendar/v3/calendars/{calendarId}/events/{eventId}"
 
-calendarId = 0
+calendarId = "75bcdf66f88e9f2cc153ddce0f6f4a8c6a98ef9517b33d8fb57a7d54e7d34658@group.calendar.google.com"
 
 dateTimeFormat = "%Y/%m/%d %H:%M:%S"
 
 defaultEquipment = "None"
 
-googleCredentialsPath = ""
+googleCredentialsPath = "../data/google_credentials.json"
 

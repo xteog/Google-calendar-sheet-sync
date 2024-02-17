@@ -24,6 +24,7 @@ def createEvents(database: Database, user: str, start: datetime, end: datetime) 
                     end=t[1],
                     attendee=user,
                 )
+                
                 database.addEvent(event)
                 google_api.sheet.addTraining(event)
 
@@ -41,9 +42,9 @@ def checkResponses(
 
 def updateEvents(database: Database, start: datetime, end: datetime) -> None:
     for user in database.getUsers():
-        createEvents(user, start, end)
+        createEvents(database, user, start, end)
 
-        checkResponses(user, start, end)
+        checkResponses(database, user, start, end)
 
 
 if __name__ == "__main__":
@@ -52,8 +53,10 @@ if __name__ == "__main__":
 
     try:
 
-        while True:
+        run = True
+        while run:
             updateEvents(db, datetime.now(), datetime.now() + timedelta(days=7))
+            run = False
 
     except Exception as e:
         print(e)

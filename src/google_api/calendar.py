@@ -1,7 +1,7 @@
 from enum import Enum
-from src.google_api.api import sendRequest, Request
+from google_api.api import sendRequest, Request
 import config
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 
 class Response(Enum):
@@ -28,8 +28,8 @@ class Event:
         self.id = data["id"]
         self.title = data["summary"]
         self.description = data["description"]
-        self.start = datetime.fromisoformat(data["start"]["dateTime"])
-        self.end = datetime.fromisoformat(data["end"]["dateTime"])
+        self.start = datetime.fromisoformat(data["start"]["dateTime"][:-1])
+        self.end = datetime.fromisoformat(data["end"]["dateTime"][:-1])
 
         for attendee in data["attendees"]:
             self.attendee = attendee["email"]
@@ -37,11 +37,15 @@ class Event:
 
     def getMetaData(self) -> dict:
         return {
-            "title": self.title,
+            "summary": self.title,
             "description": self.description,
-            "start": {"dateTime": self.start.isoformat()},
-            "end": {"dateTime": self.end.isoformat()},
-            "attendees": [self.attendee],
+            "start": {
+                "dateTime": self.start.astimezone().isoformat()
+            },
+            "end": {
+                "dateTime": self.end.astimezone().isoformat()
+            },
+            "attendees": [{"email": self.attendee, "responseStatus": self.response}],
         }
 
 

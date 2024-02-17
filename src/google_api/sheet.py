@@ -1,4 +1,4 @@
-from src.google_api.api import sendRequest, Request
+from google_api.api import sendRequest, Request
 import config
 
 

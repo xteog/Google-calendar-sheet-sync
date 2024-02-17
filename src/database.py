@@ -54,7 +54,7 @@ class Database:
         query = """
             SELECT start, end 
             FROM schedule
-            WHERE start < %s AND end > %s
+            WHERE start > %s AND start < %s
             """
         values = [start, end]
         self.cursor.execute(query, values)
@@ -72,14 +72,14 @@ class Database:
         self.cursor.execute(query, values)
         self.database.commit()
 
-    def getEvents(self, start: datetime, end: datetime) -> list[Event]:
+    def getEvents(self, user: str, start: datetime, end: datetime) -> list[Event]:
         query = """
-            SELECT id, start, end, attendee, title, description, response
-            FROM events
-            JOIN schedule ON events.start = schedule.start 
-            WHERE start < %s AND end > %s
+            SELECT id, Events.start, end, attendee, title, description, response
+            FROM Events
+            JOIN schedule ON Events.start = schedule.start 
+            WHERE Events.start < %s AND end > %s AND attendee = %s
             """
-        values = [start, end]
+        values = [start, end, user]
         self.cursor.execute(query, values)
 
         events = []
@@ -98,7 +98,7 @@ class Database:
 
     def updateEvent(self, event: Event) -> None:
         query = """
-            UPDATE events
+            UPDATE Events
             SET description = %s, response = %s
             WHERE id = %s
             """
@@ -108,7 +108,7 @@ class Database:
         self.database.commit()
 
     def addEvent(self, event: Event) -> None:
-        query = "INSERT INTO events (id, start, attendee, title, description, response) VALUES (%s, %s, %s, %s, %s, %s)"
+        query = "INSERT INTO Events (id, start, attendee, title, description, response) VALUES (%s, %s, %s, %s, %s, %s)"
         values = (
             event.id,
             event.start,
