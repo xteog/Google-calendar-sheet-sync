@@ -1,5 +1,6 @@
 import json
 
+
 def write(path: str, data: dict) -> None:
     data = json.dumps(data, indent=2)
     with open(path, "w+") as f:

@@ -1,6 +1,7 @@
 from src.google_api.api import sendRequest, Request
 import config
 
+
 class sheetRange:
     def __init__(self, cell_1: list[int, int], cell_2: list[int, int] = None) -> None:
         self.cell_1 = cell_1
@@ -21,11 +22,17 @@ class sheetRange:
 def sheetUpdate(range: sheetRange, data: list) -> None:
     json = {"values": [data]}
 
-    url = config.googleSheetURL.format(sheetId=config.sheetId, sheetName=config.sheetName, range=range, resource="update")
+    url = config.googleSheetURL.format(
+        sheetId=config.sheetId,
+        sheetName=config.sheetName,
+        range=range,
+        resource="update",
+    )
     sendRequest(Request.PUT, url, json)
 
 
 def sheetGet(range: sheetRange) -> None:
-    url = config.googleSheetURL.format(sheetId=config.sheetId, sheetName=config.sheetName, range=range, resource="get")
+    url = config.googleSheetURL.format(
+        sheetId=config.sheetId, sheetName=config.sheetName, range=range, resource="get"
+    )
     sendRequest(Request.GET, url)
-

@@ -1,6 +1,14 @@
+from enum import Enum
 from src.google_api.api import sendRequest, Request
 import config
 from datetime import datetime
+
+
+class Response(Enum):
+    YES = "accepted"
+    NO = "declined"
+    MAYBE = "tentative"
+    NONE = "needsAction"
 
 
 class Event:
@@ -10,7 +18,8 @@ class Event:
         self.end = None
         self.title = "No title"
         self.description = ""
-        self.attendees = []
+        self.response = "needsAction"
+        self.attendee = None
 
         if data != None:
             self.loadEvent(data)
@@ -23,10 +32,8 @@ class Event:
         self.end = datetime.fromisoformat(data["end"]["dateTime"])
 
         for attendee in data["attendees"]:
-            self.addAttendees(attendee["email"])
-
-    def addAttendees(self, email: str) -> None:
-        self.attendees.append({"email": email, "responseStatus": "needsAction"})
+            self.attendee = attendee["email"]
+            self.response = attendee["responseStatus"]
 
     def getMetaData(self) -> dict:
         return {
@@ -34,12 +41,12 @@ class Event:
             "description": self.description,
             "start": {"dateTime": self.start.isoformat()},
             "end": {"dateTime": self.end.isoformat()},
-            "attendees": self.attendees,
+            "attendees": [self.attendee],
         }
 
 
 def createEvent(
-    title: str, description: str, start: datetime, end: datetime, attendees: list
+    title: str, description: str, start: datetime, end: datetime, attendee: str
 ) -> Event:
     event = Event()
     event.title = title
@@ -47,8 +54,7 @@ def createEvent(
     event.start = start
     event.end = end
 
-    for attendee in attendees:
-        event.addAttendees(attendee)
+    event.attendee = attendee
 
     url = config.googleCalendarURL.format(calendarId=config.calendarId, eventId="")
     response = sendRequest(Request.POST, url, event.getMetaData())  # TODO catch
