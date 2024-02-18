@@ -19,17 +19,17 @@ def responseToString(value: Response) -> str:
     elif value == Response.MAYBE:
         return "Forse"
     elif value == Response.NONE:
-        return "-"
+        return ""
 
 
 def stringToResponse(value: str) -> Response:
-    if value == Response.YES:
+    if value == Response.YES.value:
         return Response.YES
-    elif value == Response.NO:
+    elif value == Response.NO.value:
         return Response.NO
-    elif value == Response.MAYBE:
+    elif value == Response.MAYBE.value:
         return Response.MAYBE
-    elif value == Response.NONE:
+    elif value == Response.NONE.value:
         return Response.NONE
 
 
@@ -48,6 +48,7 @@ class Event:
 
     def __eq__(self, other: object) -> bool:
         return (
+            other != None and
             self.id == other.id
             and self.description == other.description
             and self.response == other.response
@@ -70,7 +71,7 @@ class Event:
             "description": self.description,
             "start": {"dateTime": self.start.astimezone().isoformat()},
             "end": {"dateTime": self.end.astimezone().isoformat()},
-            "attendees": [{"email": self.attendee, "responseStatus": self.response}],
+            "attendees": [{"email": self.attendee, "responseStatus": self.response.value}],
         }
 
 

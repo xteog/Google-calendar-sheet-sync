@@ -8,9 +8,8 @@ googleCalendarURL = "https://www.googleapis.com/calendar/v3/calendars/{calendarI
 
 calendarId = "75bcdf66f88e9f2cc153ddce0f6f4a8c6a98ef9517b33d8fb57a7d54e7d34658@group.calendar.google.com"
 
-dateFormat = "%Y/%m/%d %H.%M.%S"
+dateFormat = "%d/%m/%Y %H.%M.%S"
 
-defaultEquipment = "None"
+defaultEquipment = "Pinne/Monopinna, Pinnette/Monino, Boccaglio"
 
 googleCredentialsPath = "../data/google_credentials.json"
-

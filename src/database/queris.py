@@ -27,14 +27,14 @@ class Database:
         print("Connessione chiusa.")
 
     def getTrainingsDates(
-        self, start: datetime, end: datetime
+        self, range: tuple[datetime, datetime]
     ) -> list[tuple[datetime, datetime]]:
         query = """
             SELECT start, end 
             FROM Schedule
             WHERE start > %s AND start < %s
             """
-        values = [start, end]
+        values = [range[0], range[1]]
         self.cursor.execute(query, values)
 
         return self.cursor.fetchall()

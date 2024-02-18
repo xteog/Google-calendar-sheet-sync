@@ -1,6 +1,6 @@
 CREATE TABLE Schedule (
-    start DATETIME PRIMARY KEY,
-    end DATETIME NOT NULL,
+    `start` DATETIME PRIMARY KEY,
+    `end` DATETIME NOT NULL,
     equipment TEXT
 );
 
@@ -10,11 +10,11 @@ CREATE TABLE Users(
 );
 
 CREATE TABLE TrainingType (
-    date DATE NOT NULL,
-    user VARCHAR(255) NOT NULL,
-    type ENUM('Dinamica', 'Statica') DEFAULT 'Dinamica',
+    date DATETIME,
+    user VARCHAR(64),
+    type ENUM('Dinamica', 'Statica') NOT NULL DEFAULT 'Dinamica',
     priority INT,
-    lock BOOLEAN NOT NULL DEFAULT FALSE,
+    `lock` BOOLEAN NOT NULL DEFAULT FALSE,
     PRIMARY KEY(date, user),
     FOREIGN KEY(date) REFERENCES Schedule (start) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (user) REFERENCES Users (email) ON UPDATE CASCADE ON DELETE CASCADE

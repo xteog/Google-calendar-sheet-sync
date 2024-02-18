@@ -44,42 +44,53 @@ def sheetGet(range: sheetRange) -> None:
     )
 
     response = sendRequest(Request.GET, url)
-    return response["values"]
+
+    try:
+        return response["values"]
+    except Exception as e:
+        #logging.error("No data fetched")
+        return [[]]
 
 
 def addTraining(date: datetime) -> None:
     cols = getDates()
-    if cols[-1].weekday == 0:
-        index = len(cols) + 1
-    else:
-        index = len(cols)
 
-    range = sheetRange((0, index))
-    sheetUpdate(range=range, data=[datetimeToString(date)])
+    if not date in cols:
+        if len(cols) > 0 and cols[-1].weekday() == 0:
+            index = len(cols) + 2
+        else:
+            index = len(cols) + 1
 
-    range = sheetRange((len(getUsers()) + 1, index))
-    sheetUpdate(range=range, data=[config.defaultEquipment])
+        r = sheetRange((0, index))
+        sheetUpdate(range=r, data=[datetimeToString(date)])
 
-    if date.weekday == 0:
-        range = sheetRange((1, index + 1), (len(getUsers()), index + 1))
-        values = ["Dinamica"] * len(getUsers())
-        sheetUpdate(range=range, data=values)
+        r = sheetRange((len(getUsers()) + 1, index))
+        sheetUpdate(range=r, data=[config.defaultEquipment])
+
+        if date.weekday() == 0:
+            for i in range(1, len(getUsers()) + 1):
+                r = sheetRange((i, index + 1))
+                value = "Dinamica"
+                sheetUpdate(range=r, data=[value])
 
 
 def getTrainingType(date: datetime, user: str) -> TrainingType:
-    row = getUsers().index(user)
-    col = getDates().index(date)
+    if date.weekday() != 0:
+        return TrainingType(type="Dinamica")
 
-    range = sheetRange((row, col))
+    row = getUsers().index(user) + 1
+    col = getDates().index(date) + 1
+
+    range = sheetRange((row, col + 1))
 
     value = sheetGet(range)
 
-    return value[0][0]
+    return TrainingType(type=value[0][0])
 
 
 def getEquipment(date: datetime) -> str:
     row = len(getUsers()) + 1
-    col = getDates().index(date)
+    col = getDates().index(date) + 1
 
     range = sheetRange((row, col))
 
@@ -89,16 +100,22 @@ def getEquipment(date: datetime) -> str:
 
 
 def updateAttendance(user: str, date: datetime, response: calendar.Response) -> None:
-    row = getUsers().index(user)
-    col = getDates().index(date)
+    row = getUsers().index(user) + 1
+    col = getDates().index(date) + 1
 
     range = sheetRange((row, col))
-    sheetUpdate(range=range, data=calendar.responseToString(response))
+    sheetUpdate(range=range, data=[calendar.responseToString(response)])
 
 
 def getDates() -> list[datetime]:
     sheet = sheetGet(sheetRange((0, 1), (0, 1000)))
-    return [stringToDatetime(x) for x in sheet]
+    result = []
+    for x in sheet[0]:
+        if len(x) > 0:
+            result.append(stringToDatetime(x))
+        else:
+            result.append(datetime(2000, 1, 1))
+    return result
 
 
 def getUsers() -> list[str]:
