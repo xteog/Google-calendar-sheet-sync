@@ -1,5 +1,9 @@
 from google_api.api import sendRequest, Request
 import config
+from google_api.calendar import Event
+from datetime import datetime
+from utils import stringToDatetime, datetimeToString
+from trainings import TrainingType
 
 
 class sheetRange:
@@ -10,13 +14,15 @@ class sheetRange:
     def __str__(self) -> str:
         range = ""
 
-        range += chr(self.cell_1[0] + ord("a"))
-        range += f"{self.cell_1[1] + 1}"
+        range += f"R{self.cell_1[0] + 1}"
+        range += f"C{self.cell_1[1] + 1}"
 
         if self.cell_2 != None:
             range += ":"
-            range += chr(self.cell_2[0] + ord("a"))
-            range += f"{self.cell_2[1] + 1}"
+            range += f"R{self.cell_2[0] + 1}"
+            range += f"C{self.cell_2[1] + 1}"
+
+        return range
 
 
 def sheetUpdate(range: sheetRange, data: list) -> None:
@@ -26,13 +32,70 @@ def sheetUpdate(range: sheetRange, data: list) -> None:
         sheetId=config.sheetId,
         sheetName=config.sheetName,
         range=range,
-        resource="update",
+        options="valueInputOption=RAW",
     )
+
     sendRequest(Request.PUT, url, json)
 
 
 def sheetGet(range: sheetRange) -> None:
     url = config.googleSheetURL.format(
-        sheetId=config.sheetId, sheetName=config.sheetName, range=range, resource="get"
+        sheetId=config.sheetId, sheetName=config.sheetName, range=range, options=""
     )
-    sendRequest(Request.GET, url)
+
+    response = sendRequest(Request.GET, url)
+    return response["values"]
+
+
+def addTraining(date: datetime) -> None:
+    cols = getDates()
+    if cols[-1].weekday == 0:
+        index = len(cols) + 1
+    else:
+        index = len(cols)
+
+    range = sheetRange((0, index))
+    sheetUpdate(range=range, data=[datetimeToString(date)])
+
+    range = sheetRange((len(getUsers()) + 1, index))
+    sheetUpdate(range=range, data=[config.defaultEquipment])
+
+
+def getTrainingType(date: datetime, user: str) -> TrainingType:
+    row = getUsers().index(user)
+    col = getDates().index(date)
+
+    range = sheetRange((row, col))
+
+    value = sheetGet(range)
+
+    return value[0][0]
+
+
+def getEquipment(date: datetime) -> str:
+    row = len(getUsers()) + 1
+    col = getDates().index(date)
+
+    range = sheetRange((row, col))
+
+    value = sheetGet(range)
+
+    return value[0][0]
+
+
+def updateAttendance(user: str, date: datetime, value: str) -> None:
+    row = getUsers().index(user)
+    col = getDates().index(date)
+
+    range = sheetRange((row, col))
+    sheetUpdate(range=range, data=value)
+
+
+def getDates() -> list[datetime]:
+    sheet = sheetGet(sheetRange((0, 1), (0, 1000)))
+    return [stringToDatetime(x) for x in sheet]
+
+
+def getUsers() -> list[str]:
+    sheet = sheetGet(sheetRange((1, 0), (100, 0)))
+    return [x[0] for x in sheet][:-1]

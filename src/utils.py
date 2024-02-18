@@ -1,4 +1,6 @@
 import json
+from datetime import datetime
+import config
 
 
 def write(path: str, data: dict) -> None:
@@ -14,3 +16,11 @@ def read(path: str) -> dict:
         return json.loads(file)
     except:
         return None
+
+
+def stringToDatetime(str: str) -> datetime:
+    return datetime.strptime(str, config.dateFormat)
+
+
+def datetimeToString(date: datetime) -> str:
+    return date.strftime(config.dateFormat)

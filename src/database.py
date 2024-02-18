@@ -1,6 +1,7 @@
 import mysql.connector
 from datetime import datetime
 from google_api.calendar import Event
+from trainings import TrainingType
 
 
 class Database:
@@ -48,7 +49,7 @@ class Database:
 
         self.database.commit()
 
-    def getTrainings(
+    def getTrainingsDates(
         self, start: datetime, end: datetime
     ) -> list[tuple[datetime, datetime]]:
         query = """
@@ -61,29 +62,18 @@ class Database:
 
         return self.cursor.fetchall()
 
-    def updateEquipment(self, date: datetime) -> None:
-        query = """
-            UPDATE schedule
-            SET equipment = %d
-            WHERE id = %s
-            """
-        values = [date]
-
-        self.cursor.execute(query, values)
-        self.database.commit()
-
-    def getEvents(self, user: str, start: datetime, end: datetime) -> list[Event]:
+    def getEvent(self, user: str, date: datetime) -> Event | None:
         query = """
             SELECT id, Events.start, end, attendee, title, description, response
             FROM Events
             JOIN schedule ON Events.start = schedule.start 
-            WHERE Events.start < %s AND end > %s AND attendee = %s
+            WHERE Events.start = %s AND attendee = %s
             """
-        values = [start, end, user]
+        values = [date, user]
         self.cursor.execute(query, values)
 
-        events = []
-        for e in self.cursor.fetchall():
+        if (self.cursor.fetchall()) > 0:
+            e = self.cursor.fetchall()[0]
             event = Event()
             event.id = e[0]
             event.start = e[1]
@@ -92,9 +82,10 @@ class Database:
             event.title = e[4]
             event.description = e[5]
             event.response = e[6]
-            events.append(event)
 
-        return events
+            return event
+
+        return None
 
     def updateEvent(self, event: Event) -> None:
         query = """
@@ -107,7 +98,7 @@ class Database:
         self.cursor.execute(query, values)
         self.database.commit()
 
-    def addEvent(self, event: Event) -> None:
+    def addTraining(self, event: Event) -> None:
         query = "INSERT INTO Events (id, start, attendee, title, description, response) VALUES (%s, %s, %s, %s, %s, %s)"
         values = (
             event.id,
@@ -117,6 +108,47 @@ class Database:
             event.description,
             event.response,
         )
+
+        self.cursor.execute(query, values)
+
+        query = "INSERT INTO TrainingType (date, user) VALUES (%s, %s)"
+        values = (event.start, event.attendee)
+
+        self.cursor.execute(query, values)
+
+        self.database.commit()
+
+    def getTrainingType(self, date: datetime, user: str) -> TrainingType:
+        query = """
+            SELECT type, priority, lock
+            FROM TrainingType
+            WHERE date = %s AND user = %s
+            """
+        values = [date, user]
+        self.cursor.execute(query, values)
+
+        result = self.cursor.fetchall()[0]
+
+        return TrainingType(type=result[0], priority=result[1], lock=result[2])
+
+    def updateTrainingType(self, date: datetime, user: str, type: TrainingType) -> None:
+        query = """
+            UPDATE TrainingType
+            SET type = %s, priority = %s, lock = %s
+            WHERE date = %s AND user = %s
+            """
+        values = (type.type, type.priority, type.lock, date, user)
+
+        self.cursor.execute(query, values)
+        self.database.commit()
+
+    def updateEquipment(self, date: datetime, value: str) -> None:
+        query = """
+            UPDATE schedule
+            SET equipment = %s
+            WHERE start = %s
+            """
+        values = (value, date)
 
         self.cursor.execute(query, values)
         self.database.commit()

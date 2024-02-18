@@ -24,6 +24,13 @@ class Event:
         if data != None:
             self.loadEvent(data)
 
+    def __eq__(self, other: object) -> bool:
+        return (
+            self.id == other.id
+            and self.description == other.description
+            and self.response == other.response
+        )
+
     def loadEvent(self, data: dict) -> None:
         self.id = data["id"]
         self.title = data["summary"]
@@ -39,12 +46,8 @@ class Event:
         return {
             "summary": self.title,
             "description": self.description,
-            "start": {
-                "dateTime": self.start.astimezone().isoformat()
-            },
-            "end": {
-                "dateTime": self.end.astimezone().isoformat()
-            },
+            "start": {"dateTime": self.start.astimezone().isoformat()},
+            "end": {"dateTime": self.end.astimezone().isoformat()},
             "attendees": [{"email": self.attendee, "responseStatus": self.response}],
         }
 

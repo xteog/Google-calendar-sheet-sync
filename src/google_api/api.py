@@ -11,9 +11,8 @@ class Request(Enum):
     PUT = "PUT"
 
 
-def sendRequest(request: Request, url: str, data: dict = {}) -> any:
-    token = refreshToken()
-    headers = {"Authorization": f"Bearer {token}"}
+def sendRequest(request: Request, url: str, data: dict = None) -> any:
+    headers = getHeaders()
 
     done = 0
     while done < 3:
@@ -30,7 +29,7 @@ def sendRequest(request: Request, url: str, data: dict = {}) -> any:
             done += 1
 
     if done != 4:
-        logging.error(f"{request} {url} {data} {response.json()}")
+        logging.error(f"{request} {url} {data} {response.content}")
         return None
 
     return response.json()
