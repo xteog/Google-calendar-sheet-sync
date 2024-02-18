@@ -3,6 +3,7 @@ import config
 from datetime import datetime
 from utils import stringToDatetime, datetimeToString
 from utils import TrainingType
+from google_api import calendar
 
 
 class sheetRange:
@@ -87,12 +88,12 @@ def getEquipment(date: datetime) -> str:
     return value[0][0]
 
 
-def updateAttendance(user: str, date: datetime, value: str) -> None:
+def updateAttendance(user: str, date: datetime, response: calendar.Response) -> None:
     row = getUsers().index(user)
     col = getDates().index(date)
 
     range = sheetRange((row, col))
-    sheetUpdate(range=range, data=value)
+    sheetUpdate(range=range, data=calendar.responseToString(response))
 
 
 def getDates() -> list[datetime]:

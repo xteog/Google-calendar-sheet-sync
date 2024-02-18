@@ -11,6 +11,28 @@ class Response(Enum):
     NONE = "needsAction"
 
 
+def responseToString(value: Response) -> str:
+    if value == Response.YES:
+        return "Presente"
+    elif value == Response.NO:
+        return "Assente"
+    elif value == Response.MAYBE:
+        return "Forse"
+    elif value == Response.NONE:
+        return "-"
+
+
+def stringToResponse(value: str) -> Response:
+    if value == Response.YES:
+        return Response.YES
+    elif value == Response.NO:
+        return Response.NO
+    elif value == Response.MAYBE:
+        return Response.MAYBE
+    elif value == Response.NONE:
+        return Response.NONE
+
+
 class Event:
     def __init__(self, data: dict = None) -> None:
         self.id = None
@@ -18,7 +40,7 @@ class Event:
         self.end = None
         self.title = "No title"
         self.description = ""
-        self.response = "needsAction"
+        self.response = Response.NONE
         self.attendee = None
 
         if data != None:
@@ -40,7 +62,7 @@ class Event:
 
         for attendee in data["attendees"]:
             self.attendee = attendee["email"]
-            self.response = attendee["responseStatus"]
+            self.response = stringToResponse(attendee["responseStatus"])
 
     def getMetaData(self) -> dict:
         return {
