@@ -31,7 +31,7 @@ class Database:
     ) -> list[tuple[datetime, datetime]]:
         query = """
             SELECT start, end 
-            FROM schedule
+            FROM Schedule
             WHERE start > %s AND start < %s
             """
         values = [start, end]
@@ -43,7 +43,7 @@ class Database:
         query = """
             SELECT id, Events.start, end, attendee, title, description, response
             FROM Events
-            JOIN schedule ON Events.start = schedule.start 
+            JOIN Schedule ON Events.start = Schedule.start 
             WHERE Events.start = %s AND attendee = %s
             """
         values = [date, user]
@@ -121,7 +121,7 @@ class Database:
 
     def updateEquipment(self, date: datetime, value: str) -> None:
         query = """
-            UPDATE schedule
+            UPDATE Schedule
             SET equipment = %s
             WHERE start = %s
             """
@@ -134,7 +134,7 @@ class Database:
         self.cursor.execute(
             """
             SELECT email
-            FROM users
+            FROM Users
             """
         )
 
@@ -147,7 +147,7 @@ class Database:
     def getUsername(self, email: str):
         query = """
             SELECT name
-            FROM users
+            FROM Users
             WHERE email = %s
             """
         values = [email]
