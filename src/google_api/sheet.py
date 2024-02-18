@@ -1,9 +1,8 @@
 from google_api.api import sendRequest, Request
 import config
-from google_api.calendar import Event
 from datetime import datetime
 from utils import stringToDatetime, datetimeToString
-from trainings import TrainingType
+from utils import TrainingType
 
 
 class sheetRange:
@@ -59,6 +58,11 @@ def addTraining(date: datetime) -> None:
 
     range = sheetRange((len(getUsers()) + 1, index))
     sheetUpdate(range=range, data=[config.defaultEquipment])
+
+    if date.weekday == 0:
+        range = sheetRange((1, index + 1), (len(getUsers()), index + 1))
+        values = ["Dinamica"] * len(getUsers())
+        sheetUpdate(range=range, data=values)
 
 
 def getTrainingType(date: datetime, user: str) -> TrainingType:

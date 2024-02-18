@@ -1,9 +1,8 @@
-import utils
 import config
 from datetime import datetime, timedelta
 import google_api.calendar
 import google_api.sheet
-from database import Database
+from database.queris import Database
 
 
 def addEvent(database: Database, user: str, start: datetime, end: datetime) -> None:

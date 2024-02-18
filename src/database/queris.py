@@ -1,7 +1,7 @@
 import mysql.connector
 from datetime import datetime
 from google_api.calendar import Event
-from trainings import TrainingType
+from utils import TrainingType
 
 
 class Database:
@@ -25,29 +25,6 @@ class Database:
     def close(self) -> None:
         self.database.close()
         print("Connessione chiusa.")
-
-    def insertUser(self, name: str, email: str):
-        query = "INSERT INTO users (email, name) VALUES (%s, %s)"
-        values = (email, name)
-        self.cursor.execute(query, values)
-
-        query = """
-            SELECT start 
-            FROM schedule
-            WHERE start > %s;
-            """
-        values = [datetime.now()]
-        self.cursor.execute(query, values)
-
-        dates = self.cursor.fetchall()
-        for i in range(len(dates)):
-            query = (
-                "INSERT INTO attendance (date, user, attendance) VALUES (%s, %s, %s)"
-            )
-            values = (dates[i][0], email, None)
-            self.cursor.execute(query, values)
-
-        self.database.commit()
 
     def getTrainingsDates(
         self, start: datetime, end: datetime
@@ -151,27 +128,6 @@ class Database:
         values = (value, date)
 
         self.cursor.execute(query, values)
-        self.database.commit()
-
-    def insertDateTime(self, start: datetime, end: datetime):
-        query = "INSERT INTO schedule (start, end) VALUES (%s, %s)"
-        values = (start, end)
-        self.cursor.execute(query, values)
-
-        query = """
-            SELECT start, email 
-            FROM schedule, users
-            WHERE start = %s
-            """
-        values = [start]
-        self.cursor.execute(query, values)
-        rows = self.cursor.fetchall()
-
-        for row in rows:
-            query = "INSERT INTO attendance (date, name) VALUES (%s, %s)"
-            values = row
-            self.cursor.execute(query, values)
-
         self.database.commit()
 
     def getUsers(self) -> list:

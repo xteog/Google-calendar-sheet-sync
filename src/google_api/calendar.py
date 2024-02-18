@@ -1,7 +1,7 @@
 from enum import Enum
 from google_api.api import sendRequest, Request
 import config
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 
 
 class Response(Enum):
