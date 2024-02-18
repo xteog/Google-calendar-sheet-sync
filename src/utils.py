@@ -1,157 +1,38 @@
-import mysql.connector
+import json
 from datetime import datetime
-from google_api.calendar import Event
-from utils import TrainingType
+import config
 
 
-class Database:
-    def __init__(self) -> None:
-        self.database = None
-        self.cursor = None
+def write(path: str, data: dict) -> None:
+    data = json.dumps(data, indent=2)
+    with open(path, "w+") as f:
+        f.write(data)
 
-    def connect(self) -> None:
-        try:
-            self.database = mysql.connector.connect(
-                user="root",
-                password="7ClsWHSf6?a52v6#[?4T",
-                host="localhost",
-                database="ApneaSchedule",
-            )
-            self.cursor = self.database.cursor()
-            print("Connessione al database riuscita!")
-        except mysql.connector.Error as err:
-            print(f"Errore durante la connessione al database: {err}")
 
-    def close(self) -> None:
-        self.database.close()
-        print("Connessione chiusa.")
-
-    def getTrainingsDates(
-        self, range: tuple[datetime, datetime]
-    ) -> list[tuple[datetime, datetime]]:
-        query = """
-            SELECT start, end 
-            FROM Schedule
-            WHERE start > %s AND start < %s
-            """
-        values = [range[0], range[1]]
-        self.cursor.execute(query, values)
-
-        return self.cursor.fetchall()
-
-    def getEvent(self, user: str, date: datetime) -> Event | None:
-        query = """
-            SELECT id, Events.start, end, attendee, title, description, response
-            FROM Events JOIN Schedule ON Events.start = Schedule.start 
-            WHERE Events.start = %s AND attendee = %s
-            """
-        values = [date, user]
-        self.cursor.execute(query, values)
-        fetched = self.cursor.fetchall()
-
-        if len(fetched) > 0 and len(fetched[0]) > 0:
-            e = fetched[0]
-            event = Event()
-            event.id = e[0]
-            event.start = e[1]
-            event.end = e[2]
-            event.attendee = e[3]
-            event.title = e[4]
-            event.description = e[5]
-            event.response = e[6]
-
-            return event
-
+def read(path: str) -> dict:
+    try:
+        with open(path, "r") as f:
+            file = f.read()
+        return json.loads(file)
+    except:
         return None
 
-    def updateEvent(self, event: Event) -> None:
-        query = """
-            UPDATE Events
-            SET description = %s, response = %s
-            WHERE id = %s
-            """
-        values = (event.description, event.response.value, event.id)
 
-        self.cursor.execute(query, values)
-        self.database.commit()
+def stringToDatetime(str: str) -> datetime:
+    return datetime.strptime(str, config.dateFormat)
 
-    def addTraining(self, event: Event) -> None:
-        query = "INSERT INTO Events (id, start, attendee, title, description, response) VALUES (%s, %s, %s, %s, %s, %s)"
-        values = (
-            event.id,
-            event.start,
-            event.attendee,
-            event.title,
-            event.description,
-            event.response.value,
-        )
 
-        self.cursor.execute(query, values)
+def datetimeToString(date: datetime) -> str:
+    return date.strftime(config.dateFormat)
 
-        query = "INSERT INTO TrainingType (date, user) VALUES (%s, %s)"
-        values = (event.start, event.attendee)
+class TrainingType:
+    def __init__(
+        self, type: str = "Dinamica", priority: int = None, lock: bool = False
+    ) -> None:
+        self.type = type
+        self.priority = priority
+        self.lock = lock
 
-        self.cursor.execute(query, values)
+    def __eq__(self, other: object) -> bool:
+        return self.type == other.type
 
-        self.database.commit()
-
-    def getTrainingType(self, date: datetime, user: str) -> TrainingType:
-        query = """
-            SELECT type, priority, `lock`
-            FROM TrainingType
-            WHERE date = %s AND user = %s
-            """
-        values = [date, user]
-        self.cursor.execute(query, values)
-
-        result = self.cursor.fetchall()[0]
-
-        return TrainingType(type=result[0], priority=result[1], lock=result[2])
-
-    def updateTrainingType(self, date: datetime, user: str, type: TrainingType) -> None:
-        query = """
-            UPDATE TrainingType
-            SET type = %s, priority = %s, `lock` = %s
-            WHERE date = %s AND user = %s
-            """
-        values = (type.type, type.priority, "TRUE" if type.lock else "FALSE", date, user)
-        print(values)
-
-        self.cursor.execute(query, values)
-        self.database.commit()
-
-    def updateEquipment(self, date: datetime, value: str) -> None:
-        query = """
-            UPDATE Schedule
-            SET equipment = %s
-            WHERE start = %s
-            """
-        values = (value, date)
-
-        self.cursor.execute(query, values)
-        self.database.commit()
-
-    def getUsers(self) -> list:
-        self.cursor.execute(
-            """
-            SELECT email
-            FROM Users
-            """
-        )
-
-        data = []
-        for email in self.cursor.fetchall():
-            data.append(email[0])
-
-        return data
-
-    def getUsername(self, email: str) -> str:
-        query = """
-            SELECT name
-            FROM Users
-            WHERE email = %s
-            """
-        values = [email]
-        self.cursor.execute(query, values)
-
-        return self.cursor.fetchall()[0][0]
