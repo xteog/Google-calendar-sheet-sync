@@ -130,6 +130,23 @@ class Database:
         self.cursor.execute(query, values)
         self.database.commit()
 
+    def getEquipment(self, date: datetime) -> None:
+        query = """
+            SELECT equipment
+            SET Schedule
+            WHERE start = %s
+            """
+        values = (date)
+
+        self.cursor.execute(query, values)
+
+        data = []
+        for equipment in self.cursor.fetchall():
+            data.append(equipment[0])
+
+        return data
+
+
     def getUsers(self) -> list:
         self.cursor.execute(
             """

@@ -22,7 +22,7 @@ def sendRequest(request: Request, url: str, data: dict = None) -> any:
             response = requests.post(url=url, headers=headers, json=data)
         elif request == Request.PUT:
             response = requests.put(url=url, headers=headers, json=data)
-
+            
         if response.status_code == 200:
             done = 4
         else:

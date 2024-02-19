@@ -37,11 +37,26 @@ def updateTrainingType(database: Database, user: str, date: datetime) -> None:
 
     if not type == database.getTrainingType(date=date, user=user):
         database.updateTrainingType(date=date, user=user, type=type)
+        event = database.getEvent(user=user, date=date)
+
+        equipment = database.getEquipment(date=date)
+        event.description = f"- {type.type}\n- {equipment}"
+
+        google_api.calendar.updateEvent(event)
 
 
 def updateEquipment(database: Database, date: datetime) -> None:
     equipment = google_api.sheet.getEquipment(date)
     database.updateEquipment(date=date, value=equipment)
+
+    for user in database.getUsers():
+        event = database.getEvent(user=user, date=date)
+
+        equipment = database.getEquipment(date=date)
+        type = database.getTrainingType(date=date, user=user)
+        event.description = f"- {type.type}\n- {equipment}"
+
+        google_api.calendar.updateEvent(event)
 
 
 def updateCalendar(database: Database, range=tuple[datetime,datetime]) -> None:
