@@ -86,7 +86,7 @@ def createEvent(
 
     event.attendee = attendee
 
-    url = config.googleCalendarURL.format(calendarId=config.calendarId, eventId="")
+    url = config.googleCalendarURL.format(calendarId=config.calendarId, eventId="", options="sendUpdates=none")
     response = sendRequest(Request.POST, url, event.getMetaData())  # TODO catch
 
     return Event(response)
@@ -94,14 +94,14 @@ def createEvent(
 
 def updateEvent(event: Event):
     url = config.googleCalendarURL.format(
-        calendarId=config.calendarId, eventId=event.id
+        calendarId=config.calendarId, eventId=event.id, options=""
     )
 
     sendRequest(Request.PUT, url, event.getMetaData())
 
 
 def getEvent(id: str) -> Event:
-    url = config.googleCalendarURL.format(calendarId=config.calendarId, eventId=id)
+    url = config.googleCalendarURL.format(calendarId=config.calendarId, eventId=id, options="")
 
     response = sendRequest(Request.GET, url)
 

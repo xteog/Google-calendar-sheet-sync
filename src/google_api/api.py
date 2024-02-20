@@ -3,6 +3,7 @@ import requests
 import utils
 import logging
 import config
+import time
 
 
 class Request(Enum):
@@ -25,6 +26,10 @@ def sendRequest(request: Request, url: str, data: dict = None) -> any:
             
         if response.status_code == 200:
             done = 4
+        elif response.status_code == 429:
+            time.sleep(100)
+            print("rate limited")
+            done = 0
         else:
             done += 1
 

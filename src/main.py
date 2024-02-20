@@ -4,6 +4,7 @@ import google_api.calendar
 import google_api.sheet
 from database.queris import Database
 import time
+import utils
 
 
 def addEvent(database: Database, user: str, start: datetime, end: datetime) -> None:
@@ -11,7 +12,7 @@ def addEvent(database: Database, user: str, start: datetime, end: datetime) -> N
 
     if event == None:
         event = google_api.calendar.createEvent(
-            title="Nuoto",
+            title="Allenamento Apnea",
             description=config.defaultEquipment,
             start=start,
             end=end,
@@ -35,14 +36,17 @@ def updateResponse(database: Database, user: str, date: datetime) -> None:
 def updateTrainingType(database: Database, user: str, date: datetime) -> None:
     type = google_api.sheet.getTrainingType(date=date, user=database.getUsername(user))
 
-    if not type == database.getTrainingType(date=date, user=user):
+    if not type == database.getTrainingType(date=date, user=user) and date - datetime.now() < config.noticeTime:
+        type.lock = True
         database.updateTrainingType(date=date, user=user, type=type)
+
         event = database.getEvent(user=user, date=date)
 
-        equipment = database.getEquipment(date=date)
-        event.description = f"- {type.type}\n- {equipment}"
+        event.description = utils.getEventDescription(database=database, date=date, user=user)
 
         google_api.calendar.updateEvent(event)
+
+    #TODO aggiorna database -> sheet
 
 
 def updateEquipment(database: Database, date: datetime) -> None:
@@ -52,11 +56,11 @@ def updateEquipment(database: Database, date: datetime) -> None:
     for user in database.getUsers():
         event = database.getEvent(user=user, date=date)
 
-        equipment = database.getEquipment(date=date)
-        type = database.getTrainingType(date=date, user=user)
-        event.description = f"- {type.type}\n- {equipment}"
+        description = utils.getEventDescription(database=database, date=date, user=user)
 
-        google_api.calendar.updateEvent(event)
+        if event.description != description:
+            event.description = description
+            google_api.calendar.updateEvent(event)
 
 
 def updateCalendar(database: Database, range=tuple[datetime,datetime]) -> None:
@@ -83,7 +87,13 @@ if __name__ == "__main__":
 
     run = True
     while run:
-        updateCalendar(db, (datetime.now(), datetime.now() + timedelta(days=7)))
+        """
+        for t in trainings:
+            for user in database.getUsers():
+                event = database.getEvent(user=user, date=t[0])
+                google_api.calendar.updateEvent(event)
+        """
+        updateCalendar(db, (datetime.now(), datetime.now() + timedelta(days=10)))
         time.sleep(60)
     db.close()
 

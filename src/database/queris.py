@@ -1,6 +1,6 @@
 import mysql.connector
 from datetime import datetime
-from google_api.calendar import Event
+from google_api.calendar import Event, stringToResponse
 from utils import TrainingType
 
 
@@ -49,8 +49,10 @@ class Database:
         values = [date, user]
         self.cursor.execute(query, values)
 
-        if (self.cursor.fetchall()) > 0:
-            e = self.cursor.fetchall()[0]
+        fetched = self.cursor.fetchall()
+
+        if len(fetched) > 0:
+            e = fetched[0]
             event = Event()
             event.id = e[0]
             event.start = e[1]
@@ -58,7 +60,7 @@ class Database:
             event.attendee = e[3]
             event.title = e[4]
             event.description = e[5]
-            event.response = e[6]
+            event.response = stringToResponse(e[6])  #TODO 
 
             return event
 
@@ -70,7 +72,7 @@ class Database:
             SET description = %s, response = %s
             WHERE id = %s
             """
-        values = (event.description, event.response, event.id)
+        values = (event.description, event.response.value, event.id)
 
         self.cursor.execute(query, values)
         self.database.commit()
@@ -83,7 +85,7 @@ class Database:
             event.attendee,
             event.title,
             event.description,
-            event.response,
+            event.response.value,
         )
 
         self.cursor.execute(query, values)
@@ -97,7 +99,7 @@ class Database:
 
     def getTrainingType(self, date: datetime, user: str) -> TrainingType:
         query = """
-            SELECT type, priority, lock
+            SELECT type, priority, `lock`
             FROM TrainingType
             WHERE date = %s AND user = %s
             """
@@ -111,7 +113,7 @@ class Database:
     def updateTrainingType(self, date: datetime, user: str, type: TrainingType) -> None:
         query = """
             UPDATE TrainingType
-            SET type = %s, priority = %s, lock = %s
+            SET type = %s, priority = %s, `lock` = %s
             WHERE date = %s AND user = %s
             """
         values = (type.type, type.priority, type.lock, date, user)
@@ -133,18 +135,14 @@ class Database:
     def getEquipment(self, date: datetime) -> None:
         query = """
             SELECT equipment
-            SET Schedule
+            FROM Schedule
             WHERE start = %s
             """
-        values = (date)
+        values = [date]
 
         self.cursor.execute(query, values)
 
-        data = []
-        for equipment in self.cursor.fetchall():
-            data.append(equipment[0])
-
-        return data
+        return self.cursor.fetchall()[0][0]
 
 
     def getUsers(self) -> list:
@@ -170,4 +168,4 @@ class Database:
         values = [email]
         self.cursor.execute(query, values)
 
-        return self.cursor.fetchall()
+        return self.cursor.fetchall()[0][0]
