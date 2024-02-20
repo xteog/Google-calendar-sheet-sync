@@ -30,10 +30,11 @@ def getEventDescription(database, date: datetime, user: str) -> str:
     type = database.getTrainingType(date=date, user=user)
 
     if date.weekday() != 0:
-        return f"- {type.type}\n- {equipment}"
-    
-    if type.lock or type.priority != None or date - datetime.utcnow() < config.noticeTime:
         description = f"- {type.type}\n- {equipment}"
+    elif type.lock or type.priority != None or date - datetime.utcnow() < config.noticeTime:
+        description = f"- {type.type}\n- {equipment}"
+    else:
+        description = f"- {equipment}"
 
     return description
 
