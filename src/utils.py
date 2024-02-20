@@ -1,7 +1,6 @@
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 import config
-from database.queris import Database
 
 
 def write(path: str, data: dict) -> None:
@@ -26,7 +25,7 @@ def stringToDatetime(str: str) -> datetime:
 def datetimeToString(date: datetime) -> str:
     return date.strftime(config.dateFormat)
 
-def getEventDescription(database: Database, date: datetime, user: str) -> str:
+def getEventDescription(database, date: datetime, user: str) -> str:
     equipment = database.getEquipment(date=date)
     type = database.getTrainingType(date=date, user=user)
 
@@ -35,6 +34,8 @@ def getEventDescription(database: Database, date: datetime, user: str) -> str:
     
     if type.lock or type.priority != None or date - datetime.utcnow() < config.noticeTime:
         description = f"- {type.type}\n- {equipment}"
+
+    return description
 
 class TrainingType:
     def __init__(
