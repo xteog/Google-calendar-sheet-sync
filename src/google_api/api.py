@@ -25,7 +25,7 @@ def sendRequest(request: Request, url: str, data: dict = None) -> any:
             response = requests.put(url=url, headers=headers, json=data)
             
         if response.status_code == 200:
-            done = 4
+            return response.json()
         elif response.status_code == 429:
             time.sleep(100)
             print("rate limited")
@@ -33,11 +33,11 @@ def sendRequest(request: Request, url: str, data: dict = None) -> any:
         else:
             done += 1
 
-    if done != 4:
-        logging.error(f"{request} {url} {data} {response.content}")
-        return None
 
-    return response.json()
+    logging.error(f"{request} {url} {data} {response.content}")
+    return None
+
+    
 
 def getHeaders() -> dict:
     token = refreshToken()
@@ -48,16 +48,20 @@ def getHeaders() -> dict:
 def refreshToken() -> str | None:
     credentials = utils.read(config.googleCredentialsPath)
 
-    response = requests.post(
-        url=config.refreshTokenURL.format(
-            refreshToken=credentials["refresh_token"],
-            clientId=credentials["client_id"],
-            clientSecret=credentials["client_secret"],
+    done = 0
+    while done < 3:
+        response = requests.post(
+            url=config.refreshTokenURL.format(
+                refreshToken=credentials["refresh_token"],
+                clientId=credentials["client_id"],
+                clientSecret=credentials["client_secret"],
+            )
         )
-    )
 
-    if response.status_code == 200:
-        return response.json()["access_token"]
+        if response.status_code == 200:
+            return response.json()["access_token"]
+        else:
+            done += 1
 
     logging.error("Couldn't get new Google token")
     return None
