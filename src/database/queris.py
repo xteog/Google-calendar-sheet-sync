@@ -2,6 +2,7 @@ import mysql.connector
 from datetime import datetime
 from google_api.calendar import Event, stringToResponse
 from utils import TrainingType
+import logging
 
 
 class Database:
@@ -18,12 +19,16 @@ class Database:
                 database="ApneaSchedule",
             )
             self.cursor = self.database.cursor()
+
             print("Connessione al database riuscita!")
+            logging.info("Connessione al database riuscita!")
         except mysql.connector.Error as err:
+            logging.error(f"Errore durante la connessione al database: {err}")
             print(f"Errore durante la connessione al database: {err}")
 
     def close(self) -> None:
         self.database.close()
+        logging.info("Connessione chiusa.")
         print("Connessione chiusa.")
 
     def getTrainingsDates(

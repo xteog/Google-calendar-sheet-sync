@@ -4,6 +4,7 @@ from datetime import datetime
 from utils import stringToDatetime, datetimeToString
 from utils import TrainingType
 from google_api import calendar
+import logging
 
 
 class sheetRange:
@@ -48,7 +49,7 @@ def sheetGet(range: sheetRange) -> None:
     try:
         return response["values"]
     except Exception as e:
-        #logging.error("No data fetched")
+        logging.error(f"No data fetched: {e}")
         return [[]]
 
 

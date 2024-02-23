@@ -5,6 +5,7 @@ import google_api.sheet
 from database.queris import Database
 import time
 import utils
+import logging
 
 
 def addEvent(database: Database, user: str, start: datetime, end: datetime) -> None:
@@ -76,60 +77,30 @@ def updateCalendar(database: Database, range=tuple[datetime,datetime]) -> None:
             updateResponse(database=database, date=t[0], user=user)
 
             updateTrainingType(database=database, date=t[0], user=user)
+            time.sleep(1)
 
         updateEquipment(database=database, date=t[0])
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        filename=config.loggerPath,
+        format="%(asctime)s [%(levelname)s]:%(name)s:%(message)s",
+        level=logging.INFO,
+    )
 
     db = Database()
     db.connect()
 
     run = True
     while run:
-        """
-        for t in trainings:
-            for user in database.getUsers():
-                event = database.getEvent(user=user, date=t[0])
-                google_api.calendar.updateEvent(event)
-        """
-        updateCalendar(db, (datetime.now(), datetime.now() + timedelta(days=10)))
-        time.sleep(60)
-    db.close()
+        try:
 
-    """
-    db = Database()
-    db.connect()
-
-    try:
-        date = datetime(2024, 2, 17)
-
-        while date.month < 8:
-            if date.weekday() == 0:
-                insertDateTime(db, date + timedelta(hours=19, minutes=15), date + timedelta(hours=21, minutes=30))
-                date += timedelta(days=3)
-            elif date.weekday() == 3:
-                insertDateTime(db, date + timedelta(hours=20, minutes=00), date + timedelta(hours=21, minutes=30))
-                date += timedelta(days=2)
-            elif date.weekday() == 5:
-                insertDateTime(db, date + timedelta(hours=16, minutes=15), date + timedelta(hours=18))
-                date += timedelta(days=2)
-
-    except Exception as e:
-        print(e)
+            updateCalendar(db, (datetime.now() - timedelta(days=5), datetime.now() + timedelta(days=14)))
+        
+        except KeyboardInterrupt:
+            print("KeyboardInterrupt detected")
+        except Exception as e:
+            logging.error("Execution terminated")
 
     db.close()
-    """
-    """
-    db = Database()
-    db.connect()
-
-    try:
-        insertUser(db, "Matteo", "gallo.matteo@hotmail.com")
-        insertUser(db, "Miriam", "gallomiriam18@gmail.com")
-
-    except Exception as e:
-        print(e)
-
-    db.close()
-    """

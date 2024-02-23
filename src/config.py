@@ -17,3 +17,5 @@ defaultEquipment = "Pinne/Monopinna, Pinnette/Monino, Boccaglio"
 googleCredentialsPath = "../data/google_credentials.json"
 
 noticeTime = timedelta(hours=1)
+
+loggerPath = "../data/logs.log"

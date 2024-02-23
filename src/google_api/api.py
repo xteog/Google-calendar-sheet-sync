@@ -27,8 +27,8 @@ def sendRequest(request: Request, url: str, data: dict = None) -> any:
         if response.status_code == 200:
             return response.json()
         elif response.status_code == 429:
+            logging.warning("rate limited")
             time.sleep(100)
-            print("rate limited")
             done = 0
         else:
             done += 1
