@@ -99,8 +99,10 @@ if __name__ == "__main__":
             updateCalendar(db, (datetime.now() - timedelta(days=5), datetime.now() + timedelta(days=14)))
         
         except KeyboardInterrupt:
+            run = False
             print("KeyboardInterrupt detected")
         except Exception as e:
+            run = False
             logging.error("Execution terminated")
 
     db.close()
