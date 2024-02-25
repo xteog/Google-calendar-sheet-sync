@@ -25,18 +25,24 @@ def stringToDatetime(str: str) -> datetime:
 def datetimeToString(date: datetime) -> str:
     return date.strftime(config.dateFormat)
 
+
 def getEventDescription(database, date: datetime, user: str) -> str:
     equipment = database.getEquipment(date=date)
     type = database.getTrainingType(date=date, user=user)
 
     if date.weekday() != 0:
         description = f"- {type.type}\n- {equipment}"
-    elif type.lock or type.priority != None or date - datetime.utcnow() < config.noticeTime:
+    elif (
+        type.lock
+        or type.priority != None
+        or date - datetime.utcnow() < config.noticeTime
+    ):
         description = f"- {type.type}\n- {equipment}"
     else:
         description = f"- {equipment}"
 
     return description
+
 
 class TrainingType:
     def __init__(
@@ -48,4 +54,3 @@ class TrainingType:
 
     def __eq__(self, other: object) -> bool:
         return self.type == other.type
-

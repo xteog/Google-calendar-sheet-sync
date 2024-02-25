@@ -88,6 +88,15 @@ def getTrainingType(date: datetime, user: str) -> TrainingType:
 
     return TrainingType(type=value[0][0])
 
+def updateTrainingType(date: datetime, user: str, type: TrainingType) -> None:
+    row = getUsers().index(user) + 1
+    col = getDates().index(date) + 1
+
+    range = sheetRange((row, col + 1))
+
+    value = [type.type]
+    sheetUpdate(range=range, type=type)
+
 
 def getEquipment(date: datetime) -> str:
     row = len(getUsers()) + 1

@@ -18,7 +18,7 @@ def insertUser(database: Database, name: str, email: str):
 
     database.database.commit()
 
-def updateResponse(database: Database, email: str, date: datetime, response: str):
+def updateResponse(database: Database, email: str, date: datetime, response: google_api.calendar.Response):
     query = """
             SELECT id, E.start, end, attendee, title, description, response
             FROM Events as E
@@ -39,6 +39,6 @@ def updateResponse(database: Database, email: str, date: datetime, response: str
     event.attendee = e[3]
     event.title = e[4]
     event.description = e[5]
-    event.response = google_api.calendar.stringToResponse(response)
+    event.response = response
 
     google_api.calendar.updateEvent(event)

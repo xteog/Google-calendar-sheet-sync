@@ -37,17 +37,22 @@ def updateResponse(database: Database, user: str, date: datetime) -> None:
 def updateTrainingType(database: Database, user: str, date: datetime) -> None:
     type = google_api.sheet.getTrainingType(date=date, user=database.getUsername(user))
 
-    if not type == database.getTrainingType(date=date, user=user) and date - datetime.now() < config.noticeTime:
+    if (
+        not type == database.getTrainingType(date=date, user=user)
+        and date - datetime.now() > config.noticeTime
+    ):
         type.lock = True
         database.updateTrainingType(date=date, user=user, type=type)
 
         event = database.getEvent(user=user, date=date)
 
-        event.description = utils.getEventDescription(database=database, date=date, user=user)
+        event.description = utils.getEventDescription(
+            database=database, date=date, user=user
+        )
 
         google_api.calendar.updateEvent(event)
 
-    #TODO aggiorna database -> sheet
+    # TODO aggiorna database -> sheet
 
 
 def updateEquipment(database: Database, date: datetime) -> None:
@@ -64,7 +69,67 @@ def updateEquipment(database: Database, date: datetime) -> None:
             google_api.calendar.updateEvent(event)
 
 
-def updateCalendar(database: Database, range=tuple[datetime,datetime]) -> None:
+def sortAvg(e: tuple) -> float:
+    return e[1]
+
+
+def calculateTrainingType(database: Database, depth: timedelta) -> None:
+    trainings = database.getTrainingsDates(
+        range=(datetime.now() - depth, datetime.now())
+    )
+    averages = []
+
+    for user in database.getUsers():
+        types = []
+        for t in trainings:
+            event = database.getEvent(date=t[0], user=user)
+            if event.response == google_api.calendar.Response.YES:
+                types.append(database.getTrainingType(date=t[0], user=user).type)
+            else:
+                types.append(None)
+
+        sum = 0
+        for type in types:
+            if type == "Statica":
+                sum += 1
+            elif type == "Dinamica":
+                sum += 0
+            elif type == None:
+                sum += 0.5 #TODO Da non contare += 1
+
+        averages = (user, sum / len(types))
+
+    averages.sort(key=sortAvg)
+
+    nextTraining = database.getTrainingsDates(
+        range=(datetime.now(), datetime.now() + 7)
+    )[0]
+
+    if nextTraining != None and nextTraining[0].weekday == 0:
+        for user in database.getUsers():
+            type = database.getTrainingType(date=nextTraining[0], user=user)
+            
+
+
+        count = 0
+        for avg in averages:
+            if count < 6:
+
+                event = database.getEvent(date=nextTraining[0], user=avg[0])
+                if event.response == google_api.calendar.Response.YES:
+                    type = database.getTrainingType(date=nextTraining[0], user=avg[0])
+                    if not type.lock:
+                        database.updateTrainingType(date=nextTraining[0], user=avg[0], type=type)
+                        google_api.sheet.updateTrainingType(date=nextTraining[0], user=avg[0], type=type)
+                        
+                        event.description = utils.getEventDescription(database=database, date=nextTraining[0], user=avg[0])
+                        google_api.calendar.updateEvent(event)
+
+                if event.response != google_api.calendar.Response.NO:
+                    count += 1
+ 
+
+def updateCalendar(database: Database, range=tuple[datetime, datetime]) -> None:
     trainings = database.getTrainingsDates(range=range)
 
     for t in trainings:
@@ -96,13 +161,19 @@ if __name__ == "__main__":
     while run:
         try:
 
-            updateCalendar(db, (datetime.now() - timedelta(days=5), datetime.now() + timedelta(days=14)))
-        
+            updateCalendar(
+                db,
+                (
+                    datetime.now() - timedelta(days=7),
+                    datetime.now() + timedelta(days=14),
+                ),
+            )
+
         except KeyboardInterrupt:
             run = False
             print("KeyboardInterrupt detected")
         except Exception as e:
             run = False
-            logging.error("Execution terminated")
+            logging.error(f"Execution terminated: {e}")
 
     db.close()
